@@ -1,5 +1,8 @@
-package Practium_2.DBFunction;
-import Practium_2.domein.Reiziger;
+package Practium_3.DBFunction;
+
+
+
+import Practium_3.domein.Reiziger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -9,6 +12,6 @@ public interface ReizigerDAO {
     public boolean update(Reiziger reiziger, int id);
     public boolean delete(Reiziger reiziger);
     public Reiziger findById(int id);
-    public List<Practium_2.domein.Reiziger> findByGbDatum(String datum);
-    public List<Practium_2.domein.Reiziger> findAll();
+    public List<Reiziger> findByGbDatum(String datum);
+    public List<Reiziger> findAll();
 }

@@ -1,7 +1,8 @@
-package Practium_2.DBFunction;
+package Practium_3.DBFunction;
 
-import Practium_2.domein.Reiziger;
-import Practium_3.DBFunction.AdresDAO;
+
+import Practium_3.domein.Adres;
+import Practium_3.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,11 +10,22 @@ import java.util.List;
 
 public class ReizigerDAOPsql implements ReizigerDAO {
     Connection conn;
+    AdresDAO adao;
 
     public ReizigerDAOPsql(Connection conn) {
         this.conn = conn;
     }
-    public boolean save(Reiziger reiziger) {
+
+    public ReizigerDAOPsql(Connection connection, AdresDAO adao){
+        this.conn = connection;
+        this.adao = adao;
+    }
+
+    public void setAdresDAO(AdresDAO adao){
+        this.adao = adao;
+    }
+
+    public boolean save(Practium_3.domein.Reiziger reiziger) {
         try {
             String insertQuery = "INSERT INTO reiziger" +
                     "  (reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum) VALUES " +
@@ -25,6 +37,10 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             preparedStatement.setString(4, reiziger.getAchternaam());
             preparedStatement.setDate(5, reiziger.getGeboortedatum());
             preparedStatement.executeUpdate();
+            if(reiziger.getAdres() != null){
+                setAdresDAO(adao);
+                this.adao.save(reiziger.getAdres());
+            }
             preparedStatement.close();
             return true;
         }catch(SQLException sqlE){
@@ -32,6 +48,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             return false;
         }
     }
+
     public boolean update(Reiziger reiziger, int id){
         try{
             String updateQuery = "UPDATE reiziger "
@@ -62,7 +79,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             return false;
         }
     }
-    public Practium_2.domein.Reiziger findById(int id){
+    public Reiziger findById(int id){
         try {
             ResultSet set;
             String findQuery = "SELECT * FROM reiziger WHERE reiziger_id=?";
@@ -79,7 +96,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 String achternaam = set.getString(4);
                 Date geboortedatum = set.getDate(5);
 
-                return new Practium_2.domein.Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
+                return new Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
             }
             preparedStatement.close();
         }catch(SQLException sqlE){
@@ -118,8 +135,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     public List<Reiziger> findAll(){
         try{
             ResultSet set;
+            List<Adres> alleAdressen = new ArrayList<>();
             List<Reiziger> allReizigers = new ArrayList<>();
-            String findQuery = "SELECT * FROM reiziger";
+            String findQuery = "SELECT * FROM reiziger inner join adres on reiziger.reiziger_id = adres.reiziger_id";
             PreparedStatement preparedStatement = conn.prepareStatement(findQuery);
             set = preparedStatement.executeQuery();
             while(set.next()) {
@@ -134,6 +152,13 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
                 Reiziger reiziger = new Reiziger(newid, voorletter, tussenvoegsel, achternaam, geboortedatum);
                 allReizigers.add(reiziger);
+                int adres_id = set.getInt(6);
+                String postcode = set.getString(7);
+                String huisnummer = set.getString(8);
+                String straat = set.getString(9);
+                String woonplaats = set.getString(10);
+                Adres  adres = new Adres(adres_id,postcode,huisnummer,straat,woonplaats,newid);
+                reiziger.setAdres(adres);
             }
             preparedStatement.close();
             return allReizigers;
