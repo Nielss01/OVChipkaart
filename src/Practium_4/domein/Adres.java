@@ -1,4 +1,4 @@
-package Practium_3.domein;
+package Practium_4.domein;
 
 public class Adres {
     private int adres_id;

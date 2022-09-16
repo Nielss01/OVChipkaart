@@ -1,31 +1,38 @@
-package Practium_3.DBFunction;
+package Practium_4.DBFunction;
 
 
-import Practium_3.domein.Adres;
-import Practium_3.domein.Reiziger;
+import Practium_4.domein.Adres;
+import Practium_4.domein.OVChipkaart;
+import Practium_4.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReizigerDAOPsql implements ReizigerDAO {
+public class ReizigerDAOPsql {
     Connection conn;
     AdresDAO adao;
+    OVChipkaartDAO odao;
 
     public ReizigerDAOPsql(Connection conn) {
         this.conn = conn;
     }
 
-    public ReizigerDAOPsql(Connection connection, AdresDAO adao){
+    public ReizigerDAOPsql(Connection connection, AdresDAO adao, OVChipkaartDAO odao){
         this.conn = connection;
         this.adao = adao;
+        this.odao = odao;
     }
 
     public void setAdresDAO(AdresDAO adao){
         this.adao = adao;
     }
 
-    public boolean save(Practium_3.domein.Reiziger reiziger) {
+    public void setOdao(OVChipkaartDAO odao) {
+        this.odao = odao;
+    }
+
+    public boolean save(Reiziger reiziger) {
         try {
             String insertQuery = "INSERT INTO reiziger" +
                     "  (reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum) VALUES " +
@@ -38,8 +45,10 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             preparedStatement.setDate(5, reiziger.getGeboortedatum());
             preparedStatement.executeUpdate();
             if(reiziger.getAdres() != null){
-                setAdresDAO(adao);
                 this.adao.save(reiziger.getAdres());
+            }
+            for(OVChipkaart ov : reiziger.getMijnOVChipkaarten()){
+                this.odao.save(ov);
             }
             preparedStatement.close();
             return true;
@@ -153,6 +162,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 allReizigers.add(reiziger);
                 Adres adres = adao.findByReiziger(reiziger);
                 reiziger.setAdres(adres);
+                List<OVChipkaart> ovChipkaart = odao.findByReiziger(reiziger);
+                reiziger.setMijnOVChipkaarten(ovChipkaart);
+
             }
             preparedStatement.close();
             return allReizigers;
@@ -161,4 +173,5 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         }
         return null;
     }
+
 }
