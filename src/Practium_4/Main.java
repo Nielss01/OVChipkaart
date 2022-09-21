@@ -17,6 +17,8 @@ public class Main {
     private static Connection connection;
     public static void main(String [] args) throws SQLException {
         getConnection();
+        testReizigerDAO();
+        testAdresDAO();
         testOVChipkaartDAO();
         closeConnection();
 
@@ -39,6 +41,75 @@ public class Main {
         }
     }
 
+
+    private static void testReizigerDAO() throws SQLException {
+        ReizigerDAOPsql rdao = new ReizigerDAOPsql(connection);
+        System.out.println("\n---------- Test ReizigerDAO -------------");
+
+        // Haal alle reizigers op uit de database
+        List<Reiziger> reizigers = rdao.findAll();
+        System.out.println("[Test] ReizigerDAO.findAll() geeft de volgende reizigers:");
+        for (Reiziger r : reizigers) {
+            System.out.println(r);
+        }
+        System.out.println();
+
+        // Maak een nieuwe reiziger aan en persisteer deze in de database
+        LocalDate gbdatum = LocalDate.of(1981,3,14);
+        Reiziger sietske = new Reiziger(77, "S", "", "Boers", java.sql.Date.valueOf(gbdatum));
+        System.out.print("[Test] Eerst " + reizigers.size() + " reizigers, na ReizigerDAO.save() ");
+        rdao.save(sietske);
+        reizigers = rdao.findAll();
+        System.out.println(reizigers.size() + " reizigers\n");
+
+        // Voeg aanvullende tests van de ontbrekende CRUD-operaties in.
+        System.out.println("Haal alle gegevens op van reizigers id 5?");
+        System.out.println(rdao.findById(5)+ "\n");
+
+        System.out.println("Haal alle gegevens van mensen die goboren zijn op: 2002-12-03");
+        System.out.println(rdao.findByGbDatum("2002-12-03")+ "\n");
+
+
+        System.out.println(sietske);
+        rdao.findAll();
+        System.out.println("Sietske's id is gewijzigd naar: " + sietske.getId());
+
+        rdao.delete(sietske);
+        reizigers = rdao.findAll();
+        System.out.println("Na de delete zijn er nog " + reizigers.size() + " over");
+    }
+
+    private static void testAdresDAO() {
+        AdresDAOPsql adao = new AdresDAOPsql(connection);
+        ReizigerDAOPsql rdao = new ReizigerDAOPsql(connection);
+        System.out.println("\n---------- Test AdresDAO -------------");
+        LocalDate gbdatum = LocalDate.of(1981, 3, 14);
+        Reiziger sietske = new Reiziger(10, "S", "", "Boers", java.sql.Date.valueOf(gbdatum));
+
+        Adres adres1 = new Adres(33, "2461 RV", "10", "G. van Dijkstraat", "Langeraar", 10);
+//        adao.save(adres1);
+        System.out.println("Adres is opgeslagen");
+        System.out.println();
+//        Adres newadres = new Adres(33,"2461 RV" , "12","G. van Dijkstraat","Langeraar", 10);
+//        adao.update(newadres);
+//        System.out.println("Adres is gewijzigd");
+//        adao.delete(newadres);
+//        System.out.println("Adres is gedelete");
+//        System.out.println("Sietske adres infomatie");
+//        System.out.println(adao.findByReiziger(sietske));
+        LocalDate geboor = LocalDate.of(2003, 10, 29);
+        Reiziger niels = new Reiziger(100, "M", "", "Zevenhoven", java.sql.Date.valueOf(geboor));
+        Adres nAdres = new Adres(18, "0987IO", "20", "De Kamp", "Langeraar", niels.getId());
+        niels.setAdres(nAdres);
+        rdao.setAdresDAO(adao);
+//        rdao.save(niels);
+        System.out.println("\n---------- Test Alle Informatie -------------");
+        List<Reiziger> reizigers = rdao.findAll();
+        for (Reiziger r : reizigers) {
+            System.out.println(r);
+        }
+        System.out.println();
+    }
 
     private static void testOVChipkaartDAO() throws SQLException {
         ReizigerDAOPsql rdao = new ReizigerDAOPsql(connection);
@@ -67,6 +138,7 @@ public class Main {
         System.out.println("Update heeft het saldo aangepast naar 40 euro" );
         System.out.println();
         System.out.println();
+        odao.delete(ovChipkaart);
         List<OVChipkaart> myOVChipkaarten = odao.findByReiziger(reiziger);
         for (OVChipkaart ov : myOVChipkaarten){
             System.out.println(ov);

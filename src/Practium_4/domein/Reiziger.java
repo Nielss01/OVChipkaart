@@ -63,15 +63,20 @@ public class Reiziger {
 
     @Override
     public String toString() {
-        return "Reiziger" +
+        String s = "Reiziger" +
                 "#" + id +
                 ": " + voorletters +
                 ". " + tussenvoegsel +" " +
                 achternaam+ " " +
-                geboortedatum + ", Adres: " + adres + " | " +
-                "OVChipkaarten: " + mijnOVChipkaarten;
-
-
+                geboortedatum;
+        if(adres != null){
+            s= s + ", Adres: " + adres;
+        }
+        if(!mijnOVChipkaarten.isEmpty()){
+            s = s + " | " +
+                    "OVChipkaarten: " + mijnOVChipkaarten;
+        }
+        return s;
     }
 
     public Adres getAdres() {

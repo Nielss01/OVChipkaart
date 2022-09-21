@@ -77,6 +77,14 @@ public class ReizigerDAOPsql {
     }
     public boolean delete(Reiziger reiziger){
         try {
+            if(adao != null){
+                adao.delete(reiziger.getAdres());
+            }
+            if(odao!= null){
+                for(OVChipkaart ovChipkaart: reiziger.getMijnOVChipkaarten()){
+                    odao.delete(ovChipkaart);
+                }
+            }
             String deleteQuery = "DELETE from reiziger WHERE reiziger_id=?";
             PreparedStatement preparedStatement = conn.prepareStatement(deleteQuery);
             preparedStatement.setInt(1, reiziger.getId());
@@ -160,10 +168,15 @@ public class ReizigerDAOPsql {
 
                 Reiziger reiziger = new Reiziger(newid, voorletter, tussenvoegsel, achternaam, geboortedatum);
                 allReizigers.add(reiziger);
-                Adres adres = adao.findByReiziger(reiziger);
-                reiziger.setAdres(adres);
-                List<OVChipkaart> ovChipkaart = odao.findByReiziger(reiziger);
-                reiziger.setMijnOVChipkaarten(ovChipkaart);
+                if(adao != null){
+                    Adres adres = adao.findByReiziger(reiziger);
+                    reiziger.setAdres(adres);
+                    if(odao!= null){
+                        List<OVChipkaart> ovChipkaart = odao.findByReiziger(reiziger);
+                        reiziger.setMijnOVChipkaarten(ovChipkaart);
+                    }
+
+                }
 
             }
             preparedStatement.close();
