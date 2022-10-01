@@ -1,4 +1,4 @@
-package Practium_4.domein;
+package Practium_5.domein;
 
 public class Adres {
     private int adres_id;
@@ -6,15 +6,16 @@ public class Adres {
     private String huisnummer;
     private String straat;
     private String woonplaats;
-    private int reiziger_id;
     private Reiziger reiziger;
+    private int reiziger_id;
 
-    public Adres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats) {
+    public Adres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats, int reiziger_id) {
         this.adres_id = adres_id;
         this.postcode = postcode;
         this.huisnummer = huisnummer;
         this.straat = straat;
         this.woonplaats = woonplaats;
+        this.reiziger_id = reiziger_id;
     }
 
     public int getAdres_id() {
@@ -63,14 +64,10 @@ public class Adres {
         return adres_id + " "+ postcode + " " +
                 huisnummer + " " +
                 straat + " " +
-                woonplaats ;
+                woonplaats;
     }
 
-    public Reiziger getReiziger() {
-        return reiziger;
-    }
-
-    public void setReiziger(Reiziger reiziger) {
-        this.reiziger = reiziger;
+    public int getReiziger_id() {
+        return reiziger_id;
     }
 }

@@ -1,23 +1,35 @@
-package Practium_4.DBFunction;
+package Practium_5.DBFunction;
 
 
-import Practium_4.Factory;
-import Practium_4.FactoryConnection;
-import Practium_4.domein.Adres;
-import Practium_4.domein.OVChipkaart;
-import Practium_4.domein.Reiziger;
+import Practium_5.domein.Adres;
+import Practium_5.domein.OVChipkaart;
+import Practium_5.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReizigerDAOPsql implements ReizigerDAO {
-   Factory factory;
-    List<Reiziger> allReizigers = new ArrayList<>();
+public class ReizigerDAOPsql {
+    Connection conn;
+    AdresDAO adao;
+    OVChipkaartDAO odao;
 
+    public ReizigerDAOPsql(Connection conn) {
+        this.conn = conn;
+    }
 
-    public ReizigerDAOPsql(Factory factory) {
-        this.factory = factory;
+    public ReizigerDAOPsql(Connection connection, AdresDAO adao, OVChipkaartDAO odao){
+        this.conn = connection;
+        this.adao = adao;
+        this.odao = odao;
+    }
+
+    public void setAdresDAO(AdresDAO adao){
+        this.adao = adao;
+    }
+
+    public void setOdao(OVChipkaartDAO odao) {
+        this.odao = odao;
     }
 
     public boolean save(Reiziger reiziger) {
@@ -25,7 +37,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             String insertQuery = "INSERT INTO reiziger" +
                     "  (reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum) VALUES " +
                     " (?, ?, ?, ?, ?);";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(insertQuery);
+            PreparedStatement preparedStatement = conn.prepareStatement(insertQuery);
             preparedStatement.setInt(1, reiziger.getId());
             preparedStatement.setString(2, reiziger.getVoorletters());
             preparedStatement.setString(3, reiziger.getTussenvoegsel());
@@ -33,15 +45,12 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             preparedStatement.setDate(5, reiziger.getGeboortedatum());
             preparedStatement.executeUpdate();
             if(reiziger.getAdres() != null){
-                factory.getAdresDAO().save(reiziger.getAdres());
+                this.adao.save(reiziger.getAdres());
             }
             for(OVChipkaart ov : reiziger.getMijnOVChipkaarten()){
-                factory.getOvChipkaartDAO().save(ov);
+                this.odao.save(ov);
             }
             preparedStatement.close();
-            if(!allReizigers.contains(reiziger)){
-                allReizigers.add(reiziger);
-            }
             return true;
         }catch(SQLException sqlE){
             System.err.println("[SQLExpection] Reiziger kan niet worden opgeslagen " + sqlE.getMessage());
@@ -54,7 +63,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             String updateQuery = "UPDATE reiziger "
                     + "SET reiziger_id = ? "
                     + "WHERE voorletters=? AND achternaam = ?";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(updateQuery);
+            PreparedStatement preparedStatement = conn.prepareStatement(updateQuery);
             preparedStatement.setInt(1, id);
             preparedStatement.setString(2, reiziger.getVoorletters());
             preparedStatement.setString(3,reiziger.getAchternaam());
@@ -68,20 +77,19 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     }
     public boolean delete(Reiziger reiziger){
         try {
-            if(reiziger.getAdres() != null){
-                reiziger.deleteAdres();
+            if(adao != null){
+                adao.delete(reiziger.getAdres());
             }
-            if(factory.getOvChipkaartDAO()!= null){
+            if(odao!= null){
                 for(OVChipkaart ovChipkaart: reiziger.getMijnOVChipkaarten()){
-                    reiziger.deleteOvChipkaart(ovChipkaart.getKaart_nummer());
+                    odao.delete(ovChipkaart);
                 }
             }
             String deleteQuery = "DELETE from reiziger WHERE reiziger_id=?";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(deleteQuery);
+            PreparedStatement preparedStatement = conn.prepareStatement(deleteQuery);
             preparedStatement.setInt(1, reiziger.getId());
             preparedStatement.executeUpdate();
             preparedStatement.close();
-            allReizigers.remove(reiziger);
             return true;
         }catch (SQLException sqlE){
             System.err.println("[SQLExpection] Reiziger kan niet worden gedelete " + sqlE.getMessage());
@@ -92,7 +100,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         try {
             ResultSet set;
             String findQuery = "SELECT * FROM reiziger WHERE reiziger_id=?";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(findQuery);
+            PreparedStatement preparedStatement = conn.prepareStatement(findQuery);
             preparedStatement.setInt(1, id);
             set = preparedStatement.executeQuery();
             while(set.next()){
@@ -105,8 +113,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 String achternaam = set.getString(4);
                 Date geboortedatum = set.getDate(5);
 
-                Reiziger reiziger = new Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
-                return  reiziger;
+                return new Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
             }
             preparedStatement.close();
         }catch(SQLException sqlE){
@@ -119,8 +126,8 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             ResultSet set;
             List<Reiziger> allReizigers = new ArrayList<>();
             String findQuery = "SELECT * FROM reiziger WHERE geboortedatum=?";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(findQuery);
-            preparedStatement.setDate(1, java.sql.Date.valueOf(datum));
+            PreparedStatement preparedStatement = conn.prepareStatement(findQuery);
+            preparedStatement.setDate(1, Date.valueOf(datum));
             set = preparedStatement.executeQuery();
             while(set.next()) {
                 int newid = set.getInt(1);
@@ -145,8 +152,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     public List<Reiziger> findAll(){
         try{
             ResultSet set;
+            List<Reiziger> allReizigers = new ArrayList<>();
             String findQuery = "SELECT * FROM reiziger";
-            PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(findQuery);
+            PreparedStatement preparedStatement = conn.prepareStatement(findQuery);
             set = preparedStatement.executeQuery();
             while(set.next()) {
                 int newid = set.getInt(1);
@@ -160,17 +168,18 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
                 Reiziger reiziger = new Reiziger(newid, voorletter, tussenvoegsel, achternaam, geboortedatum);
                 allReizigers.add(reiziger);
-                if(factory.getAdresDAO() != null) {
-                    Adres adres = factory.getAdresDAO().findByReiziger(reiziger);
+                if(adao != null){
+                    Adres adres = adao.findByReiziger(reiziger);
                     reiziger.setAdres(adres);
+                    if(odao!= null){
+                        List<OVChipkaart> ovChipkaart = odao.findByReiziger(reiziger);
+                        reiziger.setMijnOVChipkaarten(ovChipkaart);
+                    }
+
                 }
-                if(factory.getOvChipkaartDAO()!= null){
-                    List<OVChipkaart> ovChipkaart = factory.getOvChipkaartDAO().findByReiziger(reiziger);
-                    reiziger.setMijnOVChipkaarten(ovChipkaart);
-                }
+
             }
             preparedStatement.close();
-            System.out.println(allReizigers);
             return allReizigers;
         }catch(SQLException sqlE){
             System.err.println("[SQLExpection] Reizigers niet gevonden" + sqlE.getMessage());

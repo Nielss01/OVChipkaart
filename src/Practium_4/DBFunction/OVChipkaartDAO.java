@@ -12,6 +12,5 @@ public interface OVChipkaartDAO {
     public boolean update(OVChipkaart ovChipkaart, double saldo);
     public boolean delete(OVChipkaart ovChipkaart);
     public List<OVChipkaart> findAll();
-
-    public List<OVChipkaart> findByReiziger(Reiziger reiziger);
+    public List<OVChipkaart> findByReiziger(Reiziger reiziger) throws SQLException;
 }
