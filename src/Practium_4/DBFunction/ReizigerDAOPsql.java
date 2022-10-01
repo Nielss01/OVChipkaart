@@ -38,7 +38,6 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             for(OVChipkaart ov : reiziger.getMijnOVChipkaarten()){
                 factory.getOvChipkaartDAO().save(ov);
             }
-            preparedStatement.close();
             if(!allReizigers.contains(reiziger)){
                 allReizigers.add(reiziger);
             }
@@ -105,8 +104,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 String achternaam = set.getString(4);
                 Date geboortedatum = set.getDate(5);
 
-                Reiziger reiziger = new Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
-                return  reiziger;
+                return new Reiziger(newid, voorletter, tussenvoegsel, achternaam,geboortedatum);
             }
             preparedStatement.close();
         }catch(SQLException sqlE){
@@ -170,7 +168,6 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 }
             }
             preparedStatement.close();
-            System.out.println(allReizigers);
             return allReizigers;
         }catch(SQLException sqlE){
             System.err.println("[SQLExpection] Reizigers niet gevonden" + sqlE.getMessage());

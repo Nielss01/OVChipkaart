@@ -6,7 +6,6 @@ public class Adres {
     private String huisnummer;
     private String straat;
     private String woonplaats;
-    private int reiziger_id;
     private Reiziger reiziger;
 
     public Adres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats) {

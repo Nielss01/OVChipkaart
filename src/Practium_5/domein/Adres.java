@@ -7,15 +7,13 @@ public class Adres {
     private String straat;
     private String woonplaats;
     private Reiziger reiziger;
-    private int reiziger_id;
 
-    public Adres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats, int reiziger_id) {
+    public Adres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats) {
         this.adres_id = adres_id;
         this.postcode = postcode;
         this.huisnummer = huisnummer;
         this.straat = straat;
         this.woonplaats = woonplaats;
-        this.reiziger_id = reiziger_id;
     }
 
     public int getAdres_id() {
@@ -67,7 +65,11 @@ public class Adres {
                 woonplaats;
     }
 
-    public int getReiziger_id() {
-        return reiziger_id;
+    public Reiziger getReiziger() {
+        return reiziger;
+    }
+
+    public void setReiziger(Reiziger reiziger) {
+        this.reiziger = reiziger;
     }
 }
