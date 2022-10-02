@@ -113,14 +113,33 @@ public class Main {
     }
 
     private void testProductDAO() throws SQLException {
+        System.out.println("\n---------- Test ProductDAO -------------");
+        LocalDate gbd = LocalDate.of(2003, 3, 4);
+        LocalDate gbdatum = LocalDate.of(1981, 3, 14);
+        Reiziger robin = new Reiziger(410, "R", "van", "Bommel", Date.valueOf(gbd));
+        if(factory.getReizigerDAO().findById(robin.getId()) == null){
+            factory.getReizigerDAO().save(robin);
+        }
+        robin.createNewOVChipkaartWithProduct(101, Date.valueOf(gbdatum), 2, 100,7,"test", "dit is een test", 0.00);
+        OVChipkaart ovChipkaart =factory.getOvChipkaartDAO().findOvChipkaartByID(robin,101, 7);
+        System.out.println(ovChipkaart);
+        System.out.println();
+        ovChipkaart.updateProduct(7,10.00,"actief");
+        System.out.println(ovChipkaart);
+
+        ovChipkaart.deleteProduct(7);
+
+       Product product = new Product(8,"test","dit is een beschijving", 10.00);
+       product.addOVChipkaartAndSave(ovChipkaart);
+       product.save();
+        System.out.println(robin);
+        System.out.println();
+
+       product.deleteOvChipkaartP(ovChipkaart);
+       product.deleteProduct();
+       robin.deleteOvChipkaart(101);
 
 
-//        Product newProduct = new Product(7,"test","dit is een test", 0.00);
-//        System.out.println("Aantal Producten voor de save: " + allProducts.size());
-//        pdao.save(newProduct);
-//        System.out.println();
-//        allProducts = pdao.findAll();
-//        System.out.println("Aantal Producten na de save: " + allProducts.size());
     }
 
 

@@ -16,8 +16,8 @@ public class ProductDAOPsql implements ProductDAO {
         this.factory  = factory;
     }
 
-    public boolean save(Product product) throws SQLException{
-        String insertQuery= "INSERT INTO product"+
+    public boolean save(Product product) throws SQLException {
+        String insertQuery = "INSERT INTO product" +
                 "(product_nummer, naam, beschrijving, prijs) VALUES" +
                 "(?,?,?,?);";
         PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(insertQuery);
@@ -26,18 +26,20 @@ public class ProductDAOPsql implements ProductDAO {
         preparedStatement.setString(3, product.getBeschrijving());
         preparedStatement.setDouble(4, product.getPrijs());
         preparedStatement.executeUpdate();
-        for(OVChipkaart ov : product.getAllOvChipkaart()){
-            String query = "INSERT INTO ov_chipkaart_product " + "(product_nummer, kaart_nummer) VALUES " +
-                    "(?, ?);";
-            preparedStatement = FactoryConnection.getConnection().prepareStatement(query);
-            preparedStatement.setInt(1, product.getProduct_nummer());
-            preparedStatement.setInt(2, ov.getKaart_nummer());
-            preparedStatement.executeUpdate();
+        if (!product.getAllOvChipkaart().isEmpty()) {
+            for (OVChipkaart ov : product.getAllOvChipkaart()) {
+                String query = "INSERT INTO ov_chipkaart_product " + "(product_nummer, kaart_nummer) VALUES " +
+                        "(?, ?);";
+                preparedStatement = FactoryConnection.getConnection().prepareStatement(query);
+                preparedStatement.setInt(1, product.getProduct_nummer());
+                preparedStatement.setInt(2, ov.getKaart_nummer());
+                preparedStatement.executeUpdate();
+            }
+            preparedStatement.close();
         }
-        preparedStatement.close();
         return true;
     }
-    public boolean update(Product product, int prijs,String status) throws SQLException {
+    public boolean update(Product product, double prijs,String status) throws SQLException {
         String updateQuery = "UPDATE product "
                 + "SET prijs = ? "
                 + "WHERE product_nummer=?";
@@ -57,24 +59,25 @@ public class ProductDAOPsql implements ProductDAO {
         return true;
     }
     public boolean delete(Product product) throws SQLException {
-        String deleteQuery = "DELETE from product WHERE product_nummer=?";
-        PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(deleteQuery);
+        String query = "DELETE FROM ov_chipkaart_product WHERE product_nummer=?";
+        PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(query);
         preparedStatement.setInt(1, product.getProduct_nummer());
         preparedStatement.executeUpdate();
-        for(OVChipkaart ov : product.getAllOvChipkaart()){
-            String query = "DELETE FROM ov_chipkaart_product WHERE kaart_nummer=?";
-            preparedStatement = FactoryConnection.getConnection().prepareStatement(query);
-            preparedStatement.setInt(1, ov.getKaart_nummer());
-        }
         preparedStatement.close();
+
+        String deleteQuery = "DELETE from product WHERE product_nummer=?";
+        PreparedStatement preparedStatement2 = FactoryConnection.getConnection().prepareStatement(deleteQuery);
+        preparedStatement2.setInt(1, product.getProduct_nummer());
+        preparedStatement2.executeUpdate();
+        preparedStatement2.close();
         return true;
     }
 
     public Product findByOVChipkaart(OVChipkaart ovChipkaart) throws SQLException {
         ResultSet set;
-        String findQuery = "select product.product_nummer,product.naam, product.beschrijving, product.prijs from ov_chipkaart_product" +
-                "inner join product ON product.product_nummer = ov_chipkaart_product.product_nummer" +
-                "where ov_chipkaart_product.kaart_nummer =?";
+        String findQuery = "SELECT product.product_nummer, product.naam, product.beschrijving, product.prijs, " +
+                "ov_chipkaart_product.kaart_nummer FROM ov_chipkaart_product " +
+                "JOIN product ON product.product_nummer = ov_chipkaart_product.product_nummer AND ov_chipkaart_product.kaart_nummer =?";
         PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(findQuery);
         preparedStatement.setInt(1, ovChipkaart.getKaart_nummer());
         set = preparedStatement.executeQuery();
@@ -83,7 +86,9 @@ public class ProductDAOPsql implements ProductDAO {
             String naam = set.getString(2);
             String beschrijving = set.getString(3);
             double prijs = set.getDouble(4);
-            return new Product(product_nummer,naam,beschrijving,prijs);
+            Product product =  new Product(product_nummer,naam,beschrijving,prijs);
+            ovChipkaart.addProduct(product);
+            return product;
         }
         return null;
     }

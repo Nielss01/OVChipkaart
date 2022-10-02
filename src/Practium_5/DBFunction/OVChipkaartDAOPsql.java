@@ -28,15 +28,18 @@ public class OVChipkaartDAOPsql implements OVChipkaartDAO {
         preparedStatement.setDouble(4, ovChipkaart.getSaldo());
         preparedStatement.setInt(5, ovChipkaart.getReiziger().getId());
         preparedStatement.executeUpdate();
-        preparedStatement.close();
-        for(Product product : ovChipkaart.getAllProduct()) {
-            String insertQuery2 = "INSERT INTO ov_chipkaart_product (kaart_nummer, product_nummer) VALUES (?,?)";
-            preparedStatement = FactoryConnection.getConnection().prepareStatement(insertQuery2);
-            preparedStatement.setInt(1, ovChipkaart.getKaart_nummer());
-            preparedStatement.setInt(2, product.getProduct_nummer());
-            preparedStatement.executeUpdate();
-            preparedStatement.close();
+        if(ovChipkaart.getAllProduct().size()!=0){
+            for(Product product : ovChipkaart.getAllProduct()) {
+                factory.getProductDAO().save(product);
+                String insertQuery2 = "INSERT INTO ov_chipkaart_product (kaart_nummer, product_nummer) VALUES (?,?)";
+                PreparedStatement preparedStatement2 = FactoryConnection.getConnection().prepareStatement(insertQuery2);
+                preparedStatement2.setInt(1, ovChipkaart.getKaart_nummer());
+                preparedStatement2.setInt(2, product.getProduct_nummer());
+                preparedStatement2.executeUpdate();
+                preparedStatement2.close();
+            }
         }
+        preparedStatement.close();
         return true;
     }
 
@@ -57,14 +60,16 @@ public class OVChipkaartDAOPsql implements OVChipkaartDAO {
         }
     }
     public boolean delete(OVChipkaart ovChipkaart) throws SQLException {
+        String query = "DELETE from ov_chipkaart_product WHERE kaart_nummer=?";
+        PreparedStatement preparedStatement2 = FactoryConnection.getConnection().prepareStatement(query);
+        preparedStatement2.setInt(1,ovChipkaart.getKaart_nummer());
+        preparedStatement2.executeUpdate();
+        preparedStatement2.close();
+
         String deleteQuery = "DELETE from ov_chipkaart WHERE kaart_nummer=?";
         PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(deleteQuery);
         preparedStatement.setInt(1, ovChipkaart.getKaart_nummer());
         preparedStatement.executeUpdate();
-        preparedStatement.close();
-        String query = "DELETE from ov_chipkaart_product WHERE kaart_nummer=?";
-        preparedStatement = FactoryConnection.getConnection().prepareStatement(query);
-        preparedStatement.setInt(1,ovChipkaart.getKaart_nummer());
         preparedStatement.close();
         return true;
     }
@@ -97,8 +102,35 @@ public class OVChipkaartDAOPsql implements OVChipkaartDAO {
             Date geldig_tot = set.getDate(2);
             int klasse = set.getInt(3);
             double saldo = set.getDouble(4);
-            mijnOVChipkaarten.add(new OVChipkaart(kaart_nummer, geldig_tot, klasse, saldo));
+           OVChipkaart ovChipkaart= new OVChipkaart(kaart_nummer, geldig_tot, klasse, saldo);
+           mijnOVChipkaarten.add(ovChipkaart);
+           reiziger.getMijnOVChipkaarten().add(ovChipkaart);
         }
         return mijnOVChipkaarten;
     }
+
+    public OVChipkaart findOvChipkaartByID(Reiziger reiziger, int kaartnummer, int product_nummer) throws SQLException {
+        ResultSet set;
+        OVChipkaart ovChipkaart = null;
+        String findQuery = "select * from ov_chipkaart where kaart_nummer=? AND reiziger_id=?";
+        PreparedStatement preparedStatement = FactoryConnection.getConnection().prepareStatement(findQuery);
+        preparedStatement.setInt(1, kaartnummer);
+        preparedStatement.setInt(2,reiziger.getId());
+        set = preparedStatement.executeQuery();
+        while(set.next()){
+            int kaart_nummer = set.getInt(1);
+            Date geldig_tot = set.getDate(2);
+            int klasse = set.getInt(3);
+            double saldo = set.getDouble(4);
+            ovChipkaart = new OVChipkaart(kaart_nummer,geldig_tot,klasse,saldo);
+            ovChipkaart.setReiziger(reiziger);
+        }
+        assert ovChipkaart != null;
+        factory.getProductDAO().findByOVChipkaart(ovChipkaart);
+        return ovChipkaart;
+    }
+
+
+
+
 }

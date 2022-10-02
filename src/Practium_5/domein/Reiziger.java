@@ -32,6 +32,19 @@ public class Reiziger {
             factory.getOvChipkaartDAO().save(ovChipkaart);
         }
     }
+
+    public void createNewOVChipkaartWithProduct(int kaart_nummer, Date geldig_tot, int klasse, double saldo,int product_nummer, String naam, String beschrijving, double prijs) throws SQLException {
+        OVChipkaart ovChipkaart = new OVChipkaart(kaart_nummer,geldig_tot, klasse,saldo);
+        Product product = new Product(product_nummer,naam, beschrijving, prijs);
+        if(!mijnOVChipkaarten.contains(ovChipkaart)){
+            this.mijnOVChipkaarten.add(ovChipkaart);
+            ovChipkaart.setReiziger(this);
+            ovChipkaart.addProduct(product);
+            factory.getOvChipkaartDAO().save(ovChipkaart);
+        }
+    }
+
+
     public void deleteOvChipkaart(int id) throws SQLException {
         for (int i = 0; i < mijnOVChipkaarten.size(); i++) {
             if (mijnOVChipkaarten.get(i).getKaart_nummer() == id) {
@@ -50,11 +63,10 @@ public class Reiziger {
         }
     }
 
-    public Adres createNewAdres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats ) throws SQLException {
+    public void createNewAdres(int adres_id, String postcode, String huisnummer, String straat, String woonplaats ) throws SQLException {
         this.adres = new Adres(adres_id,postcode,huisnummer,straat,woonplaats);
         adres.setReiziger(this);
         factory.getAdresDAO().save(adres);
-        return adres;
     }
     public void deleteAdres(){
         factory.getAdresDAO().delete(this.adres);

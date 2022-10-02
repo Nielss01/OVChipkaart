@@ -13,4 +13,6 @@ public interface OVChipkaartDAO {
     public List<OVChipkaart> findAll() throws SQLException;
 
     public List<OVChipkaart> findByReiziger(Reiziger reiziger) throws SQLException;
+    public OVChipkaart findOvChipkaartByID(Reiziger reiziger, int kaartnummer, int product_nummer) throws SQLException;
+
 }

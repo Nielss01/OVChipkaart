@@ -1,5 +1,9 @@
 package Practium_5.domein;
 
+import Practium_5.Factory;
+
+import java.sql.Date;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +13,7 @@ public class Product {
     private String beschrijving;
     private double prijs;
     private final List<OVChipkaart> allOvChipkaart = new ArrayList<>();
+    Factory factory = Factory.newInstance();
 
     public Product(int product_nummer, String naam, String beschrijving, double prijs) {
         this.product_nummer = product_nummer;
@@ -16,6 +21,29 @@ public class Product {
         this.beschrijving = beschrijving;
         this.prijs = prijs;
     }
+    public void save() throws SQLException {
+        factory.getProductDAO().save(this);
+    }
+
+    public void addOVChipkaartAndSave(OVChipkaart ovChipkaart) throws SQLException {
+        allOvChipkaart.add(ovChipkaart);
+//        for (int i = 0; i < factory.getOvChipkaartDAO().findAll().size(); i++) {
+//            if (!factory.getOvChipkaartDAO().findAll().get(i).equals(ovChipkaart)) {
+//                System.out.println("test");
+//                factory.getOvChipkaartDAO().save(ovChipkaart);
+//            }
+//        }
+    }
+
+    public void deleteOvChipkaartP(OVChipkaart ovChipkaart) throws SQLException {
+        allOvChipkaart.remove(ovChipkaart);
+        factory.getOvChipkaartDAO().delete(ovChipkaart);
+    }
+    public void deleteProduct() throws SQLException {
+        Product product = null;
+        factory.getProductDAO().delete(this);
+    }
+
 
     public int getProduct_nummer() {
         return product_nummer;
@@ -64,7 +92,7 @@ public class Product {
                 product_nummer + " " +
                  naam + " "
                 + beschrijving + " " +
-                prijs;
+                prijs ;
 
     }
 }
