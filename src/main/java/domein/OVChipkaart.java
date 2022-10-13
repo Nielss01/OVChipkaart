@@ -2,6 +2,8 @@ package domein;
 
 
 
+import Factories.DAOFactory;
+
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -26,6 +28,8 @@ public class OVChipkaart {
             joinColumns = { @JoinColumn(name = "kaart_nummer") },
             inverseJoinColumns = { @JoinColumn(name = "product_nummer") })
     private List<Product> allProduct = new ArrayList<>();
+    @Transient
+    DAOFactory daoFactory = DAOFactory.newInstance();
 
     public OVChipkaart(int kaart_nummer, Date geldig_tot, int klasse, double saldo) {
         this.kaart_nummer = kaart_nummer;
@@ -98,20 +102,24 @@ public class OVChipkaart {
     }
     public void addProduct(Product product){
         allProduct.add(product);
+        daoFactory.getProductDAO().save(product);
     }
 
-    public void deleteProduct(int product_nummer) throws SQLException {
+    public void deleteProduct(int product_nummer) {
         for (int i = 0; i < allProduct.size(); i++) {
             if (allProduct.get(i).getProduct_nummer() == product_nummer) {
-                allProduct.remove(allProduct.get(i));
+                Product product = allProduct.get(i);
+                allProduct.remove(product);
+                daoFactory.getProductDAO().delete(product);
             }
         }
     }
 
-    public void updateProduct(int product_nummer, double prijs,String status) throws SQLException {
+    public void updateProduct(int product_nummer, double prijs) throws SQLException {
         for (int i = 0; i < allProduct.size(); i++) {
             if (allProduct.get(i).getProduct_nummer() == product_nummer) {
                 allProduct.get(i).setPrijs(prijs);
+                daoFactory.getProductDAO().update(allProduct.get(i));
             }
         }
     }

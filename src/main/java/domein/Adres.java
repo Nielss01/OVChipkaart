@@ -1,9 +1,11 @@
 package domein;
 
+import Factories.DAOFactory;
+
 import javax.persistence.*;
 
 @Entity
-@Table(name="ADRES")
+@Table(name="adres")
 public class Adres {
     @Id
     @Column(name = "adres_id", nullable = false)
@@ -15,14 +17,9 @@ public class Adres {
     @OneToOne
     @JoinColumn (name="reiziger_id")
     private Reiziger reiziger;
+    @Transient
+    private DAOFactory daoFactory = DAOFactory.newInstance();
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Adres(Long id, String postcode, String huisnummer, String straat, String woonplaats) {
         this.id = id;
@@ -51,6 +48,7 @@ public class Adres {
 
     public void setHuisnummer(String huisnummer) {
         this.huisnummer = huisnummer;
+        daoFactory.getAdresDAO().update(this);
     }
 
     public String getStraat() {

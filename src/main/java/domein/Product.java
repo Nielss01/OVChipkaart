@@ -2,13 +2,15 @@ package domein;
 
 
 
+import Factories.DAOFactory;
+
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 @Entity
-@Table(name="PRODUCT")
+@Table(name="product")
 public class Product {
     @Id
     @Column(name = "product_nummer", nullable = false)
@@ -18,6 +20,8 @@ public class Product {
     private double prijs;
     @ManyToMany(mappedBy="allProduct")
     private final List<OVChipkaart> allOvChipkaart = new ArrayList<>();
+    @Transient
+    DAOFactory daoFactory = DAOFactory.newInstance();
 
     public Product(int product_nummer, String naam, String beschrijving, double prijs) {
         this.product_nummer = product_nummer;
@@ -30,14 +34,20 @@ public class Product {
 
     }
 
-    public void addOVChipkaartAndSave(OVChipkaart ovChipkaart) throws SQLException {
+    public void save() throws SQLException {
+        daoFactory.getProductDAO().save(this);
+    }
+
+    public void addOVChipkaartAndSave(OVChipkaart ovChipkaart){
         allOvChipkaart.add(ovChipkaart);
     }
 
-    public void deleteOvChipkaartP(OVChipkaart ovChipkaart) throws SQLException {
+    public void deleteOvChipkaartP(OVChipkaart ovChipkaart)  {
         allOvChipkaart.remove(ovChipkaart);
+        ovChipkaart.deleteProduct(this.product_nummer);
     }
-    public void deleteProduct() throws SQLException {
+    public void deleteProduct() {
+        daoFactory.getProductDAO().delete(this);
         Product product = null;
     }
 
@@ -70,11 +80,13 @@ public class Product {
         return prijs;
     }
 
-    public void setPrijs(double prijs) {
+    public void setPrijs(double prijs) throws SQLException {
         this.prijs = prijs;
+
     }
     public void addOVChipkaart(OVChipkaart ovChipkaart){
         allOvChipkaart.add(ovChipkaart);
+        ovChipkaart.getAllProduct().add(this);
     }
     public void removeOVChipkaart(OVChipkaart ovChipkaart){
         allOvChipkaart.remove(ovChipkaart);
